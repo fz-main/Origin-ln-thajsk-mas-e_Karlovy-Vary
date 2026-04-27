@@ -1,1 +1,616 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Originální thajské masáže | Selma Travel Karlovy Vary</title>
+  <!-- Google Fonts + Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Leaflet map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #fefaf5;
+      color: #2e2b26;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    /* ----- MEGA INTRO ANIMACE (lotos + meditace) ----- */
+    .intro-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 40%, #2c5a3b, #0f2b1a);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      transition: opacity 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.2), visibility 0s 1.3s;
+      backdrop-filter: blur(3px);
+    }
+
+    .intro-splash.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .lotus-animation {
+      font-size: 5rem;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+      animation: lotusFloat 1.8s infinite alternate ease-in-out;
+    }
+
+    @keyframes lotusFloat {
+      0% { transform: translateY(0px) rotate(0deg); text-shadow: 0 0 0 #f7d44a; }
+      100% { transform: translateY(-25px) rotate(5deg); text-shadow: 0 15px 20px #f9e0a0; }
+    }
+
+    .splash-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #ffe6b3, #f9cca7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: softPulse 1.4s infinite alternate;
+    }
+
+    @keyframes softPulse {
+      0% { text-shadow: 0 0 0px #ffefb9; opacity: 0.9; }
+      100% { text-shadow: 0 0 18px #ffdd99; opacity: 1; }
+    }
+
+    .splash-sub {
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 2px;
+      color: #ffefcf;
+      background: rgba(0,0,0,0.35);
+      padding: 8px 28px;
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* hlavní web */
+    .main-site {
+      opacity: 0;
+      transform: scale(0.98) translateY(20px);
+      transition: opacity 0.9s ease 0.2s, transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .main-site.visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(30, 35, 28, 0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid #d9a87e;
+      padding: 1rem 0;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .nav-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: #ecca9c;
+    }
+    .logo i {
+      color: #f0bc6e;
+      margin-right: 6px;
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      background: #232a1f;
+      padding: 6px 16px;
+      border-radius: 60px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: 0.2s;
+      color: #ecdead;
+    }
+
+    .lang-btn.active {
+      background: #c58f56;
+      color: #1d281b;
+    }
+
+    /* hero */
+    .hero {
+      background: linear-gradient(115deg, #1e3325 0%, #2f4d38 100%);
+      padding: 90px 0;
+      position: relative;
+      color: #fff3e4;
+    }
+    .hero::after {
+      content: "🌸🍃";
+      font-size: 200px;
+      opacity: 0.05;
+      position: absolute;
+      bottom: 0;
+      right: 10px;
+      pointer-events: none;
+    }
+    .hero-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 50px;
+    }
+    .hero-content {
+      flex: 1.2;
+    }
+    .hero-badge {
+      background: #836e4d80;
+      display: inline-block;
+      padding: 6px 22px;
+      border-radius: 60px;
+      font-weight: 500;
+      margin-bottom: 24px;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      backdrop-filter: blur(2px);
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.6rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .thai-accent {
+      color: #f6cd92;
+    }
+    .cta-btn {
+      background: #c58f56;
+      padding: 14px 38px;
+      border-radius: 44px;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 30px;
+      transition: 0.2s;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      text-decoration: none;
+      color: white;
+    }
+    .cta-btn:hover {
+      background: #9f6e3e;
+      transform: translateY(-3px);
+    }
+
+    /* sekce */
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #2a4b2f;
+    }
+    .section-sub {
+      color: #7b6a4e;
+      margin-bottom: 3rem;
+      font-weight: 500;
+    }
+    .grid-adv, .grid-services, .grid-packages {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 32px;
+      margin: 40px 0 30px;
+    }
+    .card-thai {
+      background: #ffffffea;
+      backdrop-filter: blur(2px);
+      border-radius: 32px;
+      padding: 32px 22px;
+      transition: all 0.3s;
+      border: 1px solid #eedbc6;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.03);
+    }
+    .card-thai:hover {
+      transform: translateY(-8px);
+      border-color: #c4915f;
+      background: #fffaf2;
+      box-shadow: 0 20px 28px rgba(80, 50, 20, 0.1);
+    }
+    .card-thai i {
+      font-size: 2.8rem;
+      color: #be7c42;
+      margin-bottom: 18px;
+    }
+    .price-tag {
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: #a2561f;
+      margin-top: 18px;
+      display: inline-block;
+    }
+
+    /* mapa */
+    .map-wrapper {
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 22px 32px rgba(0,0,0,0.12);
+      height: 380px;
+      border: 2px solid #ddc9b2;
+    }
+    #thaiMap {
+      height: 100%;
+      width: 100%;
+      z-index: 1;
+    }
+    .contact-bar {
+      display: flex;
+      flex-wrap: wrap;
+      background: #fcf4e8;
+      border-radius: 60px;
+      margin-top: 30px;
+      padding: 20px 32px;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .contact-chip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+    }
+    .contact-chip i {
+      font-size: 1.6rem;
+      color: #b96f2e;
+    }
+    footer {
+      text-align: center;
+      padding: 32px;
+      background: #2b3525;
+      color: #e0cfb9;
+      font-weight: 500;
+    }
+    @media (max-width: 780px) {
+      h1 { font-size: 2.3rem; }
+      .section-title { font-size: 1.9rem; }
+      .contact-bar { flex-direction: column; align-items: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MEGA INTRO ANIMACE -->
+<div class="intro-splash" id="introSplash">
+  <div class="lotus-animation">
+    <i class="fas fa-lotus"></i> 🙏 <i class="fas fa-hand-peace"></i>
+  </div>
+  <div class="splash-title">Originální thajské masáže</div>
+  <div class="splash-sub">SELMA TRAVEL • KARLOVY VARY</div>
+</div>
+
+<main class="main-site" id="mainSite">
+  <nav class="navbar">
+    <div class="container nav-flex">
+      <div class="logo"><i class="fas fa-spa"></i> Selma Thai Massage</div>
+      <div class="lang-switch" id="langSwitch">
+        <button class="lang-btn active" data-lang="cs">Čeština</button>
+        <button class="lang-btn" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="de">Deutsch</button>
+        <button class="lang-btn" data-lang="ru">Русский</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO ÚVOD -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge" data-translate="heroBadge">🌟 thajská tradice v srdci Varů</div>
+        <h1><span data-translate="heroTitle1">Najděte svůj vnitřní klid</span><br><span class="thai-accent" data-translate="heroTitle2">s pravou thajskou masáží</span></h1>
+        <p data-translate="heroDesc" style="font-size:1.1rem; max-width:560px;">Profesionální thajské masáže, které uvolní tělo i mysl. Přijďte načerpat energii v našem klidném studiu na T. G. Masaryka.</p>
+        <a href="#services" class="cta-btn" data-translate="heroBtn">🌿 Objevte masáže →</a>
+      </div>
+      <div style="flex:0.7; text-align:center;">
+        <i class="fas fa-spa" style="font-size: 6rem; opacity: 0.25; color:#f6cd92;"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- VÝHODY -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="advTitle">✨ Proč právě k nám</h2>
+      <div class="section-sub" data-translate="advSub">Tisíce spokojených klientů, autentické techniky</div>
+      <div class="grid-adv">
+        <div class="card-thai"><i class="fas fa-hands"></i><h3 data-translate="adv1Title">Thajské masérky s certifikací</h3><p data-translate="adv1Desc">Všechny masérky prošly školením přímo v Thajsku.</p></div>
+        <div class="card-thai"><i class="fas fa-leaf"></i><h3 data-translate="adv2Title">Stoprocentní přírodní oleje</h3><p data-translate="adv2Desc">Používáme pouze organické kokosové a bylinkové oleje.</p></div>
+        <div class="card-thai"><i class="fas fa-smile"></i><h3 data-translate="adv3Title">Příjemná atmosféra</h3><p data-translate="adv3Desc">Klidné prostředí, thajská hudba a vůně exotického dřeva.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLUŽBY (DRUHY MASAŽÍ) -->
+  <section id="services">
+    <div class="container">
+      <h2 class="section-title" data-translate="servicesTitle">🌸 Nabídka masáží</h2>
+      <div class="section-sub" data-translate="servicesSub">Vyberte si tu pravou pro své tělo</div>
+      <div class="grid-services">
+        <div class="card-thai"><i class="fas fa-foot"></i><h3 data-translate="serv1">Thajská masáž chodidel</h3><p data-translate="serv1Desc">Uvolnění reflexních bodů, regenerace po celodenním chození.</p><span class="price-tag">590 Kč / 45 min</span></div>
+        <div class="card-thai"><i class="fas fa-user-check"></i><h3 data-translate="serv2">Klasická thajská masáž</h3><p data-translate="serv2Desc">Tradiční technika tlaků a protažení, harmonizace energie.</p><span class="price-tag">890 Kč / 60 min</span></div>
+        <div class="card-thai"><i class="fas fa-oil-can"></i><h3 data-translate="serv3">Aromaterapeutická masáž</h3><p data-translate="serv3Desc">Jemné techniky s vonnými oleji, dokonalá relaxace.</p><span class="price-tag">990 Kč / 60 min</span></div>
+        <div class="card-thai"><i class="fas fa-fire"></i><h3 data-translate="serv4">Baňkování a bylinné obklady</h3><p data-translate="serv4Desc">Tradiční detoxikace a uvolnění svalů.</p><span class="price-tag">1 150 Kč / 50 min</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASORTIMENT / BALÍČKY -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="packTitle">🎁 Speciální balíčky</h2>
+      <div class="section-sub" data-translate="packSub">Dopřejte si péči na maximum</div>
+      <div class="grid-packages">
+        <div class="card-thai"><i class="fas fa-calendar-week"></i><h3 data-translate="pack1">Relax víkend (2x masáž)</h3><p data-translate="pack1Desc">2 libovolné masáže dle výběru v průběhu 7 dnů.</p><span class="price-tag">1 690 Kč</span></div>
+        <div class="card-thai"><i class="fas fa-gem"></i><h3 data-translate="pack2">Thajský rituál</h3><p data-translate="pack2Desc">Klasická thajská + baňkování + bylinkový čaj.</p><span class="price-tag">1 850 Kč</span></div>
+        <div class="card-thai"><i class="fas fa-hand-holding-heart"></i><h3 data-translate="pack3">Párová masáž</h3><p data-translate="pack3Desc">Společná masáž pro dva ve stejné místnosti.</p><span class="price-tag">1 600 Kč / osoba</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAPA + KONTAKT (přesná data z odkazu) -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="mapTitle">📍 Navštivte nás</h2>
+      <div class="section-sub" data-translate="mapSub">T. G. Masaryka 937/30, Karlovy Vary – centrum města</div>
+      <div class="map-wrapper">
+        <div id="thaiMap"></div>
+      </div>
+      <div class="contact-bar">
+        <div class="contact-chip"><i class="fas fa-map-marker-alt"></i> <span data-translate="address">T. G. Masaryka 937/30, 360 01 Karlovy Vary 1</span></div>
+        <div class="contact-chip"><i class="fas fa-phone-alt"></i> <a href="tel:+420602552335" style="color:#9a5f2e; text-decoration:none;">+420 602 552 335</a></div>
+        <div class="contact-chip"><i class="fas fa-clock"></i> <span data-translate="hours">Po–Ne: 10:00–20:00 (dle objednání)</span></div>
+        <div class="contact-chip"><i class="fab fa-facebook"></i> @thajskemasazeselma</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>🙏 Originální thajské masáže – Selma Travel | <span data-translate="footerRights">Těšíme se na vaši návštěvu</span></p>
+  </footer>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ---------- VÍCEJAZYČNÁ DATA (dle mapy a skutečných údajů) ----------
+  const translations = {
+    cs: {
+      heroBadge: "🌟 thajská tradice v srdci Varů",
+      heroTitle1: "Najděte svůj vnitřní klid",
+      heroTitle2: "s pravou thajskou masáží",
+      heroDesc: "Profesionální thajské masáže, které uvolní tělo i mysl. Přijďte načerpat energii v našem klidném studiu na T. G. Masaryka.",
+      heroBtn: "🌿 Objevte masáže →",
+      advTitle: "✨ Proč právě k nám",
+      advSub: "Tisíce spokojených klientů, autentické techniky",
+      adv1Title: "Thajské masérky s certifikací",
+      adv1Desc: "Všechny masérky prošly školením přímo v Thajsku.",
+      adv2Title: "Stoprocentní přírodní oleje",
+      adv2Desc: "Používáme pouze organické kokosové a bylinkové oleje.",
+      adv3Title: "Příjemná atmosféra",
+      adv3Desc: "Klidné prostředí, thajská hudba a vůně exotického dřeva.",
+      servicesTitle: "🌸 Nabídka masáží",
+      servicesSub: "Vyberte si tu pravou pro své tělo",
+      serv1: "Thajská masáž chodidel",
+      serv1Desc: "Uvolnění reflexních bodů, regenerace po celodenním chození.",
+      serv2: "Klasická thajská masáž",
+      serv2Desc: "Tradiční technika tlaků a protažení, harmonizace energie.",
+      serv3: "Aromaterapeutická masáž",
+      serv3Desc: "Jemné techniky s vonnými oleji, dokonalá relaxace.",
+      serv4: "Baňkování a bylinné obklady",
+      serv4Desc: "Tradiční detoxikace a uvolnění svalů.",
+      packTitle: "🎁 Speciální balíčky",
+      packSub: "Dopřejte si péči na maximum",
+      pack1: "Relax víkend (2x masáž)",
+      pack1Desc: "2 libovolné masáže dle výběru v průběhu 7 dnů.",
+      pack2: "Thajský rituál",
+      pack2Desc: "Klasická thajská + baňkování + bylinkový čaj.",
+      pack3: "Párová masáž",
+      pack3Desc: "Společná masáž pro dva ve stejné místnosti.",
+      mapTitle: "📍 Navštivte nás",
+      mapSub: "T. G. Masaryka 937/30, Karlovy Vary – centrum města",
+      address: "T. G. Masaryka 937/30, 360 01 Karlovy Vary 1",
+      hours: "Po–Ne: 10:00–20:00 (dle objednání)",
+      footerRights: "Těšíme se na vaši návštěvu"
+    },
+    en: {
+      heroBadge: "🌟 Thai tradition in the heart of Karlovy Vary",
+      heroTitle1: "Find your inner peace",
+      heroTitle2: "with authentic Thai massage",
+      heroDesc: "Professional Thai massages that relax body and mind. Come recharge in our peaceful studio at T. G. Masaryka.",
+      heroBtn: "🌿 Discover massages →",
+      advTitle: "✨ Why choose us",
+      advSub: "Thousands of satisfied clients, authentic techniques",
+      adv1Title: "Certified Thai masseuses",
+      adv1Desc: "All masseuses trained directly in Thailand.",
+      adv2Title: "100% natural oils",
+      adv2Desc: "We only use organic coconut and herbal oils.",
+      adv3Title: "Pleasant atmosphere",
+      adv3Desc: "Calm environment, Thai music and exotic wood scent.",
+      servicesTitle: "🌸 Massage offer",
+      servicesSub: "Choose the right one for your body",
+      serv1: "Thai foot massage",
+      serv1Desc: "Reflexology, regeneration after long walks.",
+      serv2: "Classic Thai massage",
+      serv2Desc: "Traditional pressure and stretching, energy harmonization.",
+      serv3: "Aromatherapy massage",
+      serv3Desc: "Gentle techniques with essential oils, deep relaxation.",
+      serv4: "Cupping & herbal compresses",
+      serv4Desc: "Traditional detox and muscle release.",
+      packTitle: "🎁 Special packages",
+      packSub: "Treat yourself to maximum care",
+      pack1: "Relax weekend (2 massages)",
+      pack1Desc: "2 massages of your choice within 7 days.",
+      pack2: "Thai ritual",
+      pack2Desc: "Classic Thai + cupping + herbal tea.",
+      pack3: "Couple massage",
+      pack3Desc: "Shared massage for two in the same room.",
+      mapTitle: "📍 Visit us",
+      mapSub: "T. G. Masaryka 937/30, Karlovy Vary – city center",
+      address: "T. G. Masaryka 937/30, 360 01 Karlovy Vary 1",
+      hours: "Mon–Sun: 10:00–20:00 (by appointment)",
+      footerRights: "We look forward to your visit"
+    },
+    de: {
+      heroBadge: "🌟 Thailändische Tradition im Herzen Karlsbads",
+      heroTitle1: "Finden Sie Ihre innere Ruhe",
+      heroTitle2: "mit echter Thai-Massage",
+      heroDesc: "Professionelle Thai-Massagen, die Körper und Geist entspannen. Kommen Sie in unser ruhiges Studio an der T. G. Masaryka.",
+      heroBtn: "🌿 Massagen entdecken →",
+      advTitle: "✨ Warum zu uns",
+      advSub: "Tausende zufriedene Kunden, authentische Techniken",
+      adv1Title: "Zertifizierte Thai-Masseurinnen",
+      adv1Desc: "Alle Masseurinnen wurden direkt in Thailand ausgebildet.",
+      adv2Title: "100% natürliche Öle",
+      adv2Desc: "Wir verwenden nur biologische Kokos- und Kräuteröle.",
+      adv3Title: "Angenehme Atmosphäre",
+      adv3Desc: "Ruhige Umgebung, thailändische Musik und exotischer Duft.",
+      servicesTitle: "🌸 Massageangebot",
+      servicesSub: "Wählen Sie die richtige für Ihren Körper",
+      serv1: "Thai-Fußmassage",
+      serv1Desc: "Reflexzonen, Regeneration nach langen Spaziergängen.",
+      serv2: "Klassische Thai-Massage",
+      serv2Desc: "Traditioneller Druck und Dehnung, Energieharmonisierung.",
+      serv3: "Aromatherapie-Massage",
+      serv3Desc: "Sanfte Techniken mit Duftölen, tiefe Entspannung.",
+      serv4: "Schröpfen & Kräuterkompressen",
+      serv4Desc: "Traditionelle Entgiftung und Muskelentspannung.",
+      packTitle: "🎁 Spezielle Pakete",
+      packSub: "Gönnen Sie sich maximale Pflege",
+      pack1: "Relax-Wochenende (2 Massagen)",
+      pack1Desc: "2 Massagen Ihrer Wahl innerhalb von 7 Tagen.",
+      pack2: "Thai-Ritual",
+      pack2Desc: "Klassische Thai + Schröpfen + Kräutertee.",
+      pack3: "Paarmassage",
+      pack3Desc: "Gemeinsame Massage für zwei im selben Raum.",
+      mapTitle: "📍 Besuchen Sie uns",
+      mapSub: "T. G. Masaryka 937/30, Karlsbad – Stadtzentrum",
+      address: "T. G. Masaryka 937/30, 360 01 Karlovy Vary 1",
+      hours: "Mo–So: 10:00–20:00 (nach Vereinbarung)",
+      footerRights: "Wir freuen uns auf Ihren Besuch"
+    },
+    ru: {
+      heroBadge: "🌟 Тайские традиции в сердце Карловых Вар",
+      heroTitle1: "Обретите внутренний покой",
+      heroTitle2: "с настоящим тайским массажем",
+      heroDesc: "Профессиональный тайский массаж, расслабляющий тело и разум. Приходите зарядиться энергией в нашу спокойную студию на T. G. Masaryka.",
+      heroBtn: "🌿 Выбрать массаж →",
+      advTitle: "✨ Почему выбирают нас",
+      advSub: "Тысячи довольных клиентов, аутентичные техники",
+      adv1Title: "Сертифицированные мастера",
+      adv1Desc: "Все мастера прошли обучение непосредственно в Таиланде.",
+      adv2Title: "100% натуральные масла",
+      adv2Desc: "Мы используем только органические кокосовые и травяные масла.",
+      adv3Title: "Приятная атмосфера",
+      adv3Desc: "Спокойная обстановка, тайская музыка и аромат экзотического дерева.",
+      servicesTitle: "🌸 Наши массажи",
+      servicesSub: "Выберите подходящий для вашего тела",
+      serv1: "Тайский массаж стоп",
+      serv1Desc: "Рефлексотерапия, восстановление после долгих прогулок.",
+      serv2: "Классический тайский массаж",
+      serv2Desc: "Традиционное давление и растяжение, гармонизация энергии.",
+      serv3: "Ароматерапевтический массаж",
+      serv3Desc: "Мягкие техники с эфирными маслами, глубокое расслабление.",
+      serv4: "Банки & травяные компрессы",
+      serv4Desc: "Традиционная детоксикация и расслабление мышц.",
+      packTitle: "🎁 Специальные пакеты",
+      packSub: "Побалуйте себя максимальной заботой",
+      pack1: "Relax выходные (2 массажа)",
+      pack1Desc: "2 любых массажа на выбор в течение 7 дней.",
+      pack2: "Тайский ритуал",
+      pack2Desc: "Классический тайский + банки + травяной чай.",
+      pack3: "Парный массаж",
+      pack3Desc: "Совместный массаж для двоих в одной комнате.",
+      mapTitle: "📍 Как нас найти",
+      mapSub: "T. G. Masaryka 937/30, Карловы Вары – центр города",
+      address: "T. G. Masaryka 937/30, 360 01 Karlovy Vary 1",
+      hours: "Пн–Вс: 10:00–20:00 (по записи)",
+      footerRights: "Ждём вас в гости"
+    }
+  };
+
+  let currentLang = 'cs';
+  function applyLang(lang) {
+    if (!translations[lang]) return;
+    const dict = translations[lang];
+    document.querySelectorAll('[data-translate]').forEach(el => {
+      const key = el.getAttribute('data-translate');
+      if (dict[key]) el.innerText = dict[key];
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      if (btn.dataset.lang === lang) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+    currentLang = lang;
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+  });
+
+  // intro zmizení + mapa
+  window.addEventListener('load', () => {
+    const intro = document.getElementById('introSplash');
+    const mainEl = document.getElementById('mainSite');
+    setTimeout(() => {
+      intro.classList.add('hide');
+      mainEl.classList.add('visible');
+    }, 1700);
+
+    // Souřadnice T. G. Masaryka 937/30 (přibližně 50.2333, 12.8735)
+    const map = L.map('thaiMap').setView([50.2332, 12.8738], 17);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB'
+    }).addTo(map);
+    const marker = L.marker([50.2333, 12.8739]).addTo(map);
+    marker.bindPopup('<b>🙏 Originální thajské masáže</b><br>T. G. Masaryka 937/30<br>📞 +420 602 552 335').openPopup();
+    setTimeout(() => map.invalidateSize(), 250);
+    window.addEventListener('resize', () => map.invalidateSize());
+  });
+</script>
+</body>
+</html>
